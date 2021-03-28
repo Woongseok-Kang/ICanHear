@@ -8,6 +8,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.gson.JsonObject
 import com.woong.recogsound.databinding.ActivityMainBinding
 import okhttp3.OkHttpClient
@@ -38,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     var forceStop:Boolean = false
 
     lateinit var audio:AudioRecord
+
 
     var bufferSize:Int = AudioRecord.getMinBufferSize(16000,
             AudioFormat.CHANNEL_IN_MONO,
@@ -105,6 +110,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        //광고 넣기
+
+
+        MobileAds.initialize(this)
+        val adRequest = AdRequest.Builder().build()
+        binding.adView.loadAd(adRequest)
+
 
 
         binding.btPlay.setOnClickListener{
