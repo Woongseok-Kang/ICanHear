@@ -3,28 +3,23 @@
     package="com.woong.recogsound">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-
-
-    <!-- networkSecurityConfig : https통신만 지원하는 안드로이드 파이 이상의 버전에서도 http통신 가능하게 함 -->
     <application
-        
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:requestLegacyExternalStorage="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.RecogSound"
-        >
+        android:theme="@style/Theme.RecogSound">
+        <activity android:name=".SelectActivity"></activity>
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-6230580829738411~2251447956"/>
-
+            android:value="ca-app-pub-6230580829738411~2251447956" />
 
         <activity android:name=".SplashActivity">
             <intent-filter>
@@ -33,9 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity">
-
-        </activity>
+        <activity android:name=".MainActivity"></activity>
     </application>
 
 </manifest>

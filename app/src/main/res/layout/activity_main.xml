@@ -4,41 +4,48 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ff77ff"
     tools:context=".MainActivity">
 
 
-    <TextView
+    <ScrollView
+        android:background="@drawable/borderline"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:id="@+id/tv_soundtrans"
+        android:id="@+id/scroll"
         app:layout_constraintBottom_toTopOf="@id/bt_start"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="50dp"
+        android:padding="30dp"
+        >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/tv_soundtrans"
+        android:text="시작버튼을 누르고&#10;목소리를 들려주세요!"
+        android:textSize="30sp"
+        />
+
+    </ScrollView>
 
     <Button
         android:id="@+id/bt_start"
-        android:layout_width="match_parent"
+        android:background="#990099"
+        android:textColor="#ffffff"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="버튼을 누르고 말해주세요!"
-        app:layout_constraintTop_toBottomOf="@id/tv_soundtrans"
-        app:layout_constraintHorizontal_bias="1.0"
+        android:text="시작"
+        app:layout_constraintTop_toBottomOf="@id/scroll"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bt_play"
         app:layout_constraintRight_toRightOf="parent"
-        tools:layout_editor_absoluteY="340dp" />
-
-    <Button
-        android:id="@+id/bt_play"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="재생"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintBottom_toTopOf="@id/adView"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/bt_start"
-        tools:layout_editor_absoluteY="554dp" />
+        android:layout_marginBottom="200dp"/>
+
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
@@ -49,11 +56,12 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintTop_toBottomOf="@+id/bt_play"
-        app:layout_constraintVertical_bias="0.993">
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintVertical_bias="1">
 
     </com.google.android.gms.ads.AdView>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

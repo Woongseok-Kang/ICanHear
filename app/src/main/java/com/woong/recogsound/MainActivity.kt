@@ -16,7 +16,7 @@ import com.google.gson.JsonObject
 import com.woong.recogsound.databinding.ActivityMainBinding
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.apache.commons.lang3.StringEscapeUtils
+
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
     var lenSpeech:Int = 0
     var isRecording:Boolean = false
     var forceStop:Boolean = false
+
+    lateinit var languageCode: String
 
     lateinit var audio:AudioRecord
 
@@ -82,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             }
             // 인식이 정상적으로 종료(thread내에서 exception 포함)
             5 -> {
-                binding.tvSoundtrans.text = StringEscapeUtils.unescapeJava(result)
+                binding.tvSoundtrans.text = result
                 //binding.tvSoundtrans.text = result
                 binding.btStart.isEnabled = true
                 binding.btStart.text = "시작"
@@ -113,19 +115,32 @@ class MainActivity : AppCompatActivity() {
 
         //광고 넣기
 
+        //인텐트 받아오기(언어 선택)
+
+
+        when {
+            intent.hasExtra("kor") -> {
+                languageCode = intent.getStringExtra("kor")
+            }
+            intent.hasExtra("eng") -> {
+                languageCode = intent.getStringExtra("eng")
+            }
+            intent.hasExtra("jp") -> {
+                languageCode = intent.getStringExtra("jp")
+            }
+            intent.hasExtra("ch") -> {
+                languageCode = intent.getStringExtra("ch")
+            }
+            else -> {
+                Log.e("Main", "가져온 데이터 없음")
+            }
+        }
 
         MobileAds.initialize(this)
         val adRequest = AdRequest.Builder().build()
         binding.adView.loadAd(adRequest)
 
 
-
-        binding.btPlay.setOnClickListener{
-            if (mPath.isEmpty() || isRecording) {
-
-                Toast.makeText(this, "Please record, first.", Toast.LENGTH_SHORT).show();
-            }
-        }
 
 
 
@@ -136,10 +151,10 @@ class MainActivity : AppCompatActivity() {
            else{
                try{
                    Thread(Runnable {
-                       SendMessage("Recording..", 1)
+                       SendMessage("듣고 있습니다...", 1)
                        try {
                            recordSpeech()
-                           SendMessage("Recognizing...", 2)
+                           SendMessage("듣고 있습니다...", 2)
                        } catch (e: RuntimeException) {
                            Log.e("실패", "실패")
                            e.message?.let { it1 -> SendMessage(it1, 3) }
@@ -247,19 +262,17 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun sendDataAndGetResult() : String{
-        val openApiURL = "http://aiopen.etri.re.kr:8000/WiseASR/Recognition"
-        val accessKey: String = API_Key.trim()
-        System.out.println("acessKey $accessKey")
 
+        val accessKey: String = API_Key.trim()
+        println("acessKey $accessKey")
+        println("언어 : $languageCode")
         var ResposeCode : Int = 0 // 응답코드 받아오는 변수
        // var ResposeBody : String = "" // 응답 결과를 받아오는 변수
 
         //var gson = Gson()
 
-        val languageCode: String = "korean"
-
         val request: MutableMap<String, Any> = HashMap()
-        val argument: MutableMap<String, String> = HashMap()
+        val argument: MutableMap<String, String?> = HashMap()
 
         val audioContents = Base64.encodeToString(
                 speechData, 0, lenSpeech * 2, Base64.NO_WRAP)
@@ -288,15 +301,15 @@ class MainActivity : AppCompatActivity() {
 
         val soundRecogBody = SoundRecogBody(accessKey, argument, languageCode, audioContents)
 
-        val clientBuilder = OkHttpClient.Builder()
+        /*val clientBuilder = OkHttpClient.Builder()
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
-        clientBuilder.addInterceptor(loggingInterceptor)
+        clientBuilder.addInterceptor(loggingInterceptor)*/
 
          val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
-                 .client(clientBuilder.build())
+                 //.client(clientBuilder.build())// 오류발생시 어떤 오류인지 확인 하고 싶을때
                 .build()
         val api = retrofit.create(SoundRecogAPI::class.java)
         val callSoundRecog = api.transferSound(soundRecogBody)
@@ -310,27 +323,54 @@ class MainActivity : AppCompatActivity() {
 
                 Log.d("main", "성공 : ${response.raw()}")
                 Log.d("main", "성공 : ${response.body()}")
-                //Log.d("main", "성공 : ${response.code()}")
-                Log.d("main", "성공 : ${response.isSuccessful}")
 
-                ResposeCode = response.code()
-                // ResposeBody = "성공 : ${response.body()}"
-                Log.d("asdf", response.message())
-                Log.d("asdf", "오케 : ${response.errorBody()}")
-
-
-                var re: JsonObject? = response.body()
+                val re: JsonObject? = response.body()
                 if (re != null) {
-                    result = re.toString()
+
+                    val parseResult = response.body()?.get("return_object").toString()
+                    val parseLength = parseResult.length
+
+                    when (languageCode) {
+                        "korean" -> {
+
+                            if(parseResult.substring(15, parseLength-2)=="ASR_NOTOKEN"){
+                                result = "다시 한번 말해주세요"
+                            }
+                            else
+                            result = parseResult.substring(15, parseLength-2)
+                        }
+                        "english" -> {
+                            if(parseResult.substring(15, parseLength-4)=="  ")
+                            {
+                                result = "Speak one more time"
+                            }
+                            else
+                            result = parseResult.substring(15, parseLength-4)
+                        }
+                        "japanese" -> {
+                            result = parseResult.substring(15, parseLength-2)
+                        }
+                        "chinese" -> {
+                            result = parseResult.substring(15, parseLength-2)
+                        }
+                        else -> {
+                            Log.d("Main", "언어데이터 없음")
+                        }
+                    }
+
                 }
+
+
                 //result = ResposeBody
-                binding.tvSoundtrans.text = StringEscapeUtils.unescapeJava(result)
+                binding.tvSoundtrans.text = result
 
 
             }
 
             override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                Toast.makeText(this@MainActivity, "모바일 데이터 및 wifi 연결을 확인하세요!", Toast.LENGTH_LONG).show()
                 Log.d("main", "실패 : $t")
+
             }
         })
 
