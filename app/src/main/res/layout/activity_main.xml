@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ff77ff"
+    android:background="#ffccff"
     tools:context=".MainActivity">
 
 
@@ -35,8 +35,8 @@
 
     <Button
         android:id="@+id/bt_start"
-        android:background="#990099"
-        android:textColor="#ffffff"
+        android:background="@drawable/buttonround"
+        android:textColor="#5d5d5d"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="시작"

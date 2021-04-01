@@ -73,6 +73,8 @@ class MainActivity : AppCompatActivity() {
             }
             //녹음이 비정상적으로 종료(마이크 권한 등)
             3 -> {
+
+                Toast.makeText(this, "앱 정보에서 마이크 권한을 허용한 후 다시 실행해주세요!!", Toast.LENGTH_LONG).show()
                 binding.tvSoundtrans.text = v
                 binding.btStart.text = "시작"
             }
@@ -151,13 +153,19 @@ class MainActivity : AppCompatActivity() {
            else{
                try{
                    Thread(Runnable {
-                       SendMessage("듣고 있습니다...", 1)
+                       SendMessage("듣고 있습니다.", 1)
                        try {
                            recordSpeech()
-                           SendMessage("듣고 있습니다...", 2)
+                           SendMessage("듣고 있습니다.", 2)
                        } catch (e: RuntimeException) {
                            Log.e("실패", "실패")
-                           e.message?.let { it1 -> SendMessage(it1, 3) }
+                           Log.e("Main", "2번")
+                           //e.message?.let { it1 -> SendMessage(it1, 3) }
+                           //SendMessage("앱 정보에서 마이크 권한을 허용한 후 다시 실행해주세요!!", 3)
+                           SendMessage("", 3)
+
+
+
                            return@Runnable
                        }
 
@@ -177,6 +185,7 @@ class MainActivity : AppCompatActivity() {
                            }
                        } catch (e: InterruptedException) {
                            SendMessage("Interrupted", 4)
+                           Log.e("Main", "4번")
                        }
 
                    }).start()
@@ -216,7 +225,7 @@ class MainActivity : AppCompatActivity() {
             lenSpeech =0
             if(audio.state != AudioRecord.STATE_INITIALIZED){
                 Log.e("실패", "실패1")
-                throw RuntimeException("ERROR: Failed to initialize audio deevide.Allow app to access microphone")
+                throw RuntimeException()
 
             }
             else{
@@ -375,7 +384,9 @@ class MainActivity : AppCompatActivity() {
         })
 
         Log.d("main", "에잉 $ResposeCode")
-        return "잠시만 기다려주세요..."
+        return """잠시만
+            |기다려주세요...
+        """.trimMargin()
 
     }
 
