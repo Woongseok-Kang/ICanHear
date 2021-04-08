@@ -33,6 +33,7 @@
 
     </ScrollView>
 
+
     <Button
         android:id="@+id/bt_start"
         android:background="@drawable/buttonround"
@@ -43,16 +44,41 @@
         app:layout_constraintTop_toBottomOf="@id/scroll"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/textsize_seekbar"
+        android:layout_marginBottom="100dp"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="글자 크기 조정"
+        app:layout_constraintBottom_toTopOf="@id/textsize_seekbar"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="10dp"
+        android:textSize="15sp"
+        />
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textsize_seekbar"
         app:layout_constraintBottom_toTopOf="@id/adView"
-        android:layout_marginBottom="200dp"/>
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_start"
+        android:layout_marginBottom="70dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        />
 
 
     <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:adSize="BANNER"
-        app:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        app:adUnitId="ca-app-pub-6230580829738411/6597887070"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 
 class SplashActivity : AppCompatActivity() {
-    val SPLASH_VIEW_TIME: Long = 1500 //1.5초간 스플래시 화면을 보여줌 (ms)
+    private val splashViewTime: Long = 1500 //1.5초간 스플래시 화면을 보여줌 (ms)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,6 +16,6 @@ class SplashActivity : AppCompatActivity() {
             startActivity(Intent(this, SelectActivity::class.java))
             finish()
             overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        }, SPLASH_VIEW_TIME)
+        }, splashViewTime)
     }
 }

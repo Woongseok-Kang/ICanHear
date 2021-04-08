@@ -1,10 +1,13 @@
 package com.woong.recogsound
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.media.*
 import android.media.AudioTrack
 import android.os.*
 import android.util.Base64
 import android.util.Log
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +15,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.gson.JsonObject
 import com.woong.recogsound.databinding.ActivityMainBinding
 import okhttp3.OkHttpClient
@@ -25,14 +29,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.*
 import kotlin.experimental.and
 
-
 class MainActivity : AppCompatActivity() {
 
-    private val MSG_KEY : String = "status"
 
-    private val API_Key = "1bb93bd5-ba32-418d-a3ec-1e37194b4adb"
-    val BASE_URL = "http://aiopen.etri.re.kr:8000/"
+    private val msgKey : String = "status"
+    private val apiKey = "1bb93bd5-ba32-418d-a3ec-1e37194b4adb"
+    private val baseUrl = "http://aiopen.etri.re.kr:8000/"
 
+    //변환 결과 저장 변수
     var result : String? = ""
 
     private val maxLenSpeech:Int = 16000*45
@@ -42,24 +46,27 @@ class MainActivity : AppCompatActivity() {
     var forceStop:Boolean = false
 
     lateinit var languageCode: String
-
     lateinit var audio:AudioRecord
+
+    // Seekbar 데이터 저장변수
+    private var progressValue:Int = 24
 
 
     var bufferSize:Int = AudioRecord.getMinBufferSize(16000,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT)
 
-    var mRecordingThread:Thread? = null
-    var mPath:String = ""
-
+    //뷰바인딩 선언
     private var mBinding: ActivityMainBinding? = null
     private val binding get() = mBinding!!
+
+
+
 
     private val handler = Handler{
 
         val bd:Bundle = it.data
-        val v :String? = bd.getString(MSG_KEY)
+        val v :String? = bd.getString(msgKey)
         when (it.what){
             //녹음 시작
             1 -> {
@@ -96,11 +103,11 @@ class MainActivity : AppCompatActivity() {
         true
     }
 
-    private fun SendMessage(str: String, id: Int){
+    private fun sendMsg(str: String, id: Int){
 
-        var msg: Message = handler.obtainMessage()
-        var bd :Bundle = Bundle()
-        bd.putString(MSG_KEY, str)
+        val msg: Message = handler.obtainMessage()
+        val bd :Bundle = Bundle()
+        bd.putString(msgKey, str)
         msg.what = id
         msg.data = bd
         handler.sendMessage(msg)
@@ -109,17 +116,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //광고 넣기
 
         //인텐트 받아오기(언어 선택)
-
-
         when {
             intent.hasExtra("kor") -> {
                 languageCode = intent.getStringExtra("kor")
@@ -138,12 +143,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        MobileAds.initialize(this)
+
+        //광고 넣기
+        MobileAds.initialize(this){}
         val adRequest = AdRequest.Builder().build()
         binding.adView.loadAd(adRequest)
 
 
+        // SeekBar의 글자크기 데이터 불러오기
+        val sf:SharedPreferences = getSharedPreferences("SeekbarData", Context.MODE_PRIVATE)
+        val num:Int = sf.getInt("SeekNum", 24)
 
+        binding.textsizeSeekbar.min = 15
+        binding.textsizeSeekbar.max = 50
+        binding.textsizeSeekbar.progress = num
+        binding.tvSoundtrans.textSize = num.toFloat()
+
+        //SeekBar 이벤트
+        binding.textsizeSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.tvSoundtrans.textSize = progress.toFloat()
+                progressValue = progress
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
 
 
        binding.btStart.setOnClickListener{
@@ -153,16 +185,14 @@ class MainActivity : AppCompatActivity() {
            else{
                try{
                    Thread(Runnable {
-                       SendMessage("듣고 있습니다.", 1)
+                       sendMsg("듣고 있습니다.", 1)
                        try {
                            recordSpeech()
-                           SendMessage("듣고 있습니다.", 2)
+                           sendMsg("듣고 있습니다.", 2)
                        } catch (e: RuntimeException) {
-                           Log.e("실패", "실패")
-                           Log.e("Main", "2번")
                            //e.message?.let { it1 -> SendMessage(it1, 3) }
                            //SendMessage("앱 정보에서 마이크 권한을 허용한 후 다시 실행해주세요!!", 3)
-                           SendMessage("", 3)
+                           sendMsg("", 3)
 
 
 
@@ -170,7 +200,6 @@ class MainActivity : AppCompatActivity() {
                        }
 
                        val threadRecog = Thread {
-                           Log.e("성공", "성공3")
                            result = sendDataAndGetResult()
                        }
 
@@ -179,13 +208,12 @@ class MainActivity : AppCompatActivity() {
                            threadRecog.join(20000)
                            if (threadRecog.isAlive) {
                                threadRecog.interrupt()
-                               SendMessage("No response", 4)
+                               sendMsg("No response", 4)
                            } else {
-                               SendMessage("OK", 5)
+                               sendMsg("OK", 5)
                            }
                        } catch (e: InterruptedException) {
-                           SendMessage("Interrupted", 4)
-                           Log.e("Main", "4번")
+                           sendMsg("Interrupted", 4)
                        }
 
                    }).start()
@@ -218,18 +246,12 @@ class MainActivity : AppCompatActivity() {
                     AudioFormat.ENCODING_PCM_16BIT,
                     bufferSize)
 
-
-
-            Log.e("성공", "성공")
-
             lenSpeech =0
             if(audio.state != AudioRecord.STATE_INITIALIZED){
-                Log.e("실패", "실패1")
                 throw RuntimeException()
 
             }
             else{
-                Log.e("성공", "성공1")
                 val inBuffer = ShortArray(bufferSize)
                 forceStop = false
                 isRecording = true
@@ -260,26 +282,18 @@ class MainActivity : AppCompatActivity() {
                 audio.stop()
                 audio.release()
                 isRecording = false
-                Log.e("성공", "성공2")
 
             }
         } catch (t: Throwable){
-            Log.e("실패", "실패2")
             throw RuntimeException(t.toString())
         }
     }
 
 
+    //
     private fun sendDataAndGetResult() : String{
 
-        val accessKey: String = API_Key.trim()
-        println("acessKey $accessKey")
-        println("언어 : $languageCode")
-        var ResposeCode : Int = 0 // 응답코드 받아오는 변수
-       // var ResposeBody : String = "" // 응답 결과를 받아오는 변수
-
-        //var gson = Gson()
-
+        val accessKey: String = apiKey.trim()
         val request: MutableMap<String, Any> = HashMap()
         val argument: MutableMap<String, String?> = HashMap()
 
@@ -295,34 +309,25 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
-       /* var request:HashMap<String, Any> = HashMap()
-        var argument:HashMap<String, String> = HashMap()
-
-
-        val audioContents: String = Base64.encodeToString(
-                speechData, 0, lenSpeech * 2, Base64.NO_WRAP);
-        argument["language_code"] = languageCode
-        argument["audio"] = audioContents
-
-        request["access_key"] = accessKey
-        request["argument"] = argument*/
-
-        val soundRecogBody = SoundRecogBody(accessKey, argument, languageCode, audioContents)
-
+        //오류발생시 어떤 오류인지 확인 하고 싶을때
         /*val clientBuilder = OkHttpClient.Builder()
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         clientBuilder.addInterceptor(loggingInterceptor)*/
 
+
+        //레트로핏을 사용하여 rest통신
+        val soundRecogBody = SoundRecogBody(accessKey, argument, languageCode, audioContents)
          val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                  //.client(clientBuilder.build())// 오류발생시 어떤 오류인지 확인 하고 싶을때
                 .build()
         val api = retrofit.create(SoundRecogAPI::class.java)
         val callSoundRecog = api.transferSound(soundRecogBody)
 
+
+        //결과값을 json 파싱
         callSoundRecog.enqueue(object : Callback<JsonObject> {
             override fun onResponse(
                     call: Call<JsonObject>,
@@ -369,8 +374,6 @@ class MainActivity : AppCompatActivity() {
 
                 }
 
-
-                //result = ResposeBody
                 binding.tvSoundtrans.text = result
 
 
@@ -382,12 +385,20 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
-
-        Log.d("main", "에잉 $ResposeCode")
         return """잠시만
             |기다려주세요...
         """.trimMargin()
 
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        //Seekbar 글자크기 데이터 저장
+        val prefs :SharedPreferences = getSharedPreferences("SeekbarData", Context.MODE_PRIVATE)
+        val editor : SharedPreferences.Editor = prefs.edit()
+        editor.putInt("SeekNum", progressValue)
+        editor.apply()
     }
 
     override fun onDestroy() {

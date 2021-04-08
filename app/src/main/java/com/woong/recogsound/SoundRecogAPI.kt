@@ -7,7 +7,7 @@ import retrofit2.http.*
 data class SoundRecogBody(
         val access_key:String,
         val argument : Any,
-        val languate_code:String,
+        val language_code:String,
         val audio: String
 )
 
